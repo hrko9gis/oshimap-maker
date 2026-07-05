@@ -1,3 +1,21 @@
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { DashboardPage } from './pages/DashboardPage'
+import { ProjectSettingsPage } from './pages/ProjectSettingsPage'
+import { SpotListPage } from './pages/SpotListPage'
+import { SpotEditorPage } from './pages/SpotEditorPage'
+import { ExportPage } from './pages/ExportPage'
+
 export function App() {
-  return <div className="p-4 text-dusk-900">OshiMap Maker</div>
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/:projectId" element={<SpotListPage />} />
+        <Route path="/:projectId/settings" element={<ProjectSettingsPage />} />
+        <Route path="/:projectId/spots" element={<SpotEditorPage />} />
+        <Route path="/:projectId/spots/:spotId" element={<SpotEditorPage />} />
+        <Route path="/:projectId/export" element={<ExportPage />} />
+      </Routes>
+    </BrowserRouter>
+  )
 }

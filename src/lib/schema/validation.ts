@@ -65,8 +65,10 @@ export function validateSpot(spot: SpotDraft): FieldError[] {
   return errors
 }
 
-/** プロジェクト設定を検証する（空配列＝妥当）。 */
-export function validateProject(project: Project): FieldError[] {
+/** プロジェクト設定を検証する（空配列＝妥当）。ProjectDraft でも呼べるよう必要フィールドのみ受け取る。 */
+export function validateProject(
+  project: Pick<Project, 'title' | 'disclaimer' | 'license'>,
+): FieldError[] {
   const errors: FieldError[] = []
   requireText(errors, 'title.ja', project.title?.ja)
   requireText(errors, 'title.en', project.title?.en)

@@ -16,7 +16,9 @@ export async function buildBundleZip(project: Project): Promise<Uint8Array> {
 
 /** ブラウザで文字列/バイナリをファイルとしてダウンロードさせる（副作用のため単体テスト対象外）。 */
 export function triggerDownload(filename: string, data: Uint8Array | string, mime: string): void {
-  const blob = new Blob([data], { type: mime })
+  // fflate の Uint8Array<ArrayBufferLike> を BlobPart(ArrayBuffer由来) に正規化する
+  const part: BlobPart = typeof data === 'string' ? data : new Uint8Array(data)
+  const blob = new Blob([part], { type: mime })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
