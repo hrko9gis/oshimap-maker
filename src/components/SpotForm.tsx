@@ -213,10 +213,13 @@ export function SpotForm({ value, onChange, onSubmit, errors }: SpotFormProps) {
       <EnumSelect
         label="公開ステータス"
         value={value.status}
-        options={SPOT_STATUS_VALUES}
+        options={value.status === 'published' ? SPOT_STATUS_VALUES : (['draft', 'review'] as SpotStatus[])}
         labels={STATUS_LABELS}
         onChange={(v) => set('status', v)}
       />
+      <p className="-mt-2 text-xs text-dusk-600">
+        「公開」は一覧の「公開審査」から公開前チェックを通して行います。
+      </p>
 
       <button
         type="submit"

@@ -44,6 +44,14 @@ export function SpotRow({ projectId, spot, onMoveUp, onMoveDown, onDelete, isFir
         <Link to={`/${projectId}/spots/${spot.id}`} className="rounded border border-dusk-300 px-2 py-0.5 text-xs text-dusk-800">
           編集
         </Link>
+        {spot.status !== 'published' && (
+          <Link
+            to={`/${projectId}/spots/${spot.id}/publish-check`}
+            className="rounded border border-dusk-300 px-2 py-0.5 text-xs text-dusk-800"
+          >
+            公開審査
+          </Link>
+        )}
         <button type="button" onClick={onDelete} className="rounded border border-red-300 px-2 py-0.5 text-xs text-red-700" aria-label="削除">
           削除
         </button>
