@@ -1,5 +1,6 @@
 import { BilingualInput } from './BilingualInput'
 import { EnumSelect } from './EnumSelect'
+import { KeywordHashPreview } from './KeywordHashPreview'
 import { MapPicker } from './MapPicker'
 import {
   CATEGORY_ORDER,
@@ -199,6 +200,7 @@ export function SpotForm({ value, onChange, onSubmit, errors }: SpotFormProps) {
             />
             <ErrorText errors={errors} field="stamp_keyword_answer" />
           </label>
+          <KeywordHashPreview keyword={value.stamp_keyword_answer ?? ''} />
           <BilingualInput
             label="合言葉のヒント"
             value={value.stamp_keyword_hint ?? EMPTY}
