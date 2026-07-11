@@ -35,6 +35,9 @@ export function SpotListPage() {
         <Link to={`/${projectId}/settings`} className="text-dusk-700 underline">
           プロジェクト設定
         </Link>
+        <Link to={`/${projectId}/preview`} className="text-dusk-700 underline">
+          プレビュー
+        </Link>
         <Link to={`/${projectId}/export`} className="text-dusk-700 underline">
           エクスポート
         </Link>
