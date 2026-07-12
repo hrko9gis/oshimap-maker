@@ -1,0 +1,3 @@
+# SPA fallback: 未知のパスはすべて index.html を返し、クライアント側ルーター(BrowserRouter)に委ねる。
+# これにより /:projectId/export などの深いURLを直接開いても 404 にならない。
+/*    /index.html   200
