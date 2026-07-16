@@ -5,6 +5,13 @@
 - 公開先：**Cloudflare Pages**（無料・SPA 再読込に対応）
 - ビルド出力：`dist/`（`npm run build` で生成）
 - SPA フォールバック：`public/_redirects`（`/* /index.html 200`）を同梱済み。深いURL（例 `/:projectId/export`）を直接開いても 404 になりません。
+- デプロイ設定：`wrangler.jsonc` を同梱済み。Cloudflare が本プロジェクトを **Workers（Static Assets）** として作成し `npx wrangler deploy` を実行する場合、この設定で `dist/` を静的アセットとして配信します（`main` を持たない静的専用）。これにより **Vite 5 のままデプロイでき**、`not_found_handling: "single-page-application"` が SPA ルーティングを担います。
+
+> **もし `wrangler deploy` で「Vite … cannot be automatically configured」エラーが出たら**
+> 原因は、プロジェクトが（Pages ではなく）Workers として作成され、設定ファイルが無いため
+> wrangler が Vite の自動設定（Vite 6+ 必須）を試みたことです。同梱の `wrangler.jsonc` が
+> これを解消します（静的アセット配信を明示するため自動設定が走りません）。Vite の
+> アップグレードは不要です。
 
 > **重要な前提（データの保存場所）**
 > 静的デプロイでは、作成したマップは **その人が使っているブラウザの中だけ** に保存されます。

@@ -1,0 +1,13 @@
+{
+  // OshiMap Maker は静的SPA。Worker スクリプト(main)は持たず、ビルド成果物 dist/ を
+  // 静的アセットとして配信するだけの構成。これにより `wrangler deploy` が Vite の
+  // 自動フレームワーク設定（Vite 6+ が必要）を試みず、Vite 5 のままデプロイできる。
+  "name": "oshimap-maker",
+  "compatibility_date": "2026-07-01",
+  "assets": {
+    "directory": "./dist",
+    // 未知のパスは index.html を返し、クライアント側ルーター(BrowserRouter)に委ねる。
+    // 深いURL（例 /:projectId/export）を直接開いても 404 にならない。
+    "not_found_handling": "single-page-application"
+  }
+}
