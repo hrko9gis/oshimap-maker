@@ -5,12 +5,13 @@ import type { ProjectDraft } from '../components/ProjectForm'
 import { validateProject } from '../lib/schema/validation'
 import { useProjects } from '../hooks/useProjects'
 import { useRepository } from '../context/RepositoryContext'
+import { ImportLocalButton } from '../components/ImportLocalButton'
 import type { FieldError } from '../lib/schema/types'
 
 export function DashboardPage() {
   const navigate = useNavigate()
   const repo = useRepository()
-  const { projects, loading, error } = useProjects()
+  const { projects, loading, error, reload } = useProjects()
   const [draft, setDraft] = useState<ProjectDraft>(blankProjectDraft)
   const [errors, setErrors] = useState<FieldError[]>([])
   const [creating, setCreating] = useState(false)
@@ -55,6 +56,7 @@ export function DashboardPage() {
             ))}
           </ul>
         )}
+        <ImportLocalButton onDone={reload} />
       </section>
 
       <section className="mt-6">
