@@ -40,7 +40,7 @@ export function ProjectSettingsPage() {
     const found = validateProject(value)
     setErrors(found)
     if (found.length > 0) return
-    await repo.saveProject({ ...project, ...value })
+    await repo.saveProject({ ...(project as NonNullable<typeof project>), ...value })
     navigate(`/${projectId}`)
   }
 
