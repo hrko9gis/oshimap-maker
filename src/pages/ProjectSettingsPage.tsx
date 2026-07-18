@@ -1,18 +1,23 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ProjectForm } from '../components/ProjectForm'
 import type { ProjectDraft } from '../components/ProjectForm'
 import { validateProject } from '../lib/schema/validation'
-import { findProject, saveProject } from '../lib/storage/projectStore'
+import { useProject } from '../hooks/useProject'
+import { useRepository } from '../context/RepositoryContext'
 import type { FieldError } from '../lib/schema/types'
 
 export function ProjectSettingsPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  const project = projectId ? findProject(projectId) : null
-  const [draft, setDraft] = useState<ProjectDraft | null>(() => {
-    if (!project) return null
-    return {
+  const repo = useRepository()
+  const { project, loading, error } = useProject(projectId)
+  const [draft, setDraft] = useState<ProjectDraft | null>(null)
+  const [errors, setErrors] = useState<FieldError[]>([])
+
+  useEffect(() => {
+    if (!project) return
+    setDraft({
       title: project.title,
       area_name: project.area_name,
       description: project.description,
@@ -22,19 +27,20 @@ export function ProjectSettingsPage() {
       license: project.license,
       disclaimer: project.disclaimer,
       official_url: project.official_url,
-    }
-  })
-  const [errors, setErrors] = useState<FieldError[]>([])
+    })
+  }, [project])
 
+  if (loading) return <div className="p-4 text-dusk-700">読み込み中…</div>
+  if (error) return <div className="p-4 text-red-700">{error}</div>
   if (!project || !projectId || !draft) {
     return <div className="p-4 text-dusk-800">プロジェクトが見つかりません。</div>
   }
 
-  function handleSubmit(value: ProjectDraft) {
+  async function handleSubmit(value: ProjectDraft) {
     const found = validateProject(value)
     setErrors(found)
     if (found.length > 0) return
-    saveProject({ ...(project as NonNullable<typeof project>), ...value })
+    await repo.saveProject({ ...project, ...value })
     navigate(`/${projectId}`)
   }
 

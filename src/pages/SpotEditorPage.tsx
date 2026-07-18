@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { SpotForm } from '../components/SpotForm'
 import { validateSpot } from '../lib/schema/validation'
-import { findProject, upsertSpot } from '../lib/storage/projectStore'
+import { useProject } from '../hooks/useProject'
+import { useRepository } from '../context/RepositoryContext'
 import type { FieldError, SpotDraft } from '../lib/schema/types'
 
 function emptySpot(): SpotDraft {
@@ -26,26 +27,26 @@ function emptySpot(): SpotDraft {
 export function SpotEditorPage() {
   const { projectId, spotId } = useParams()
   const navigate = useNavigate()
-  const project = projectId ? findProject(projectId) : null
-
-  const initial = useMemo<SpotDraft>(() => {
-    const existing = project?.spots.find((s) => s.id === spotId)
-    return existing ? { ...existing } : emptySpot()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId, spotId])
-
-  const [draft, setDraft] = useState<SpotDraft>(initial)
+  const repo = useRepository()
+  const { project, loading, error } = useProject(projectId)
+  const [draft, setDraft] = useState<SpotDraft | null>(null)
   const [errors, setErrors] = useState<FieldError[]>([])
 
-  if (!project || !projectId) {
-    return <div className="p-4 text-dusk-800">プロジェクトが見つかりません。</div>
-  }
+  useEffect(() => {
+    if (loading) return
+    const existing = project?.spots.find((s) => s.id === spotId)
+    setDraft(existing ? { ...existing } : emptySpot())
+  }, [loading, project, spotId])
 
-  function handleSubmit(value: SpotDraft) {
+  if (loading || !draft) return <div className="p-4 text-dusk-700">読み込み中…</div>
+  if (error) return <div className="p-4 text-red-700">{error}</div>
+  if (!project || !projectId) return <div className="p-4 text-dusk-800">プロジェクトが見つかりません。</div>
+
+  async function handleSubmit(value: SpotDraft) {
     const found = validateSpot(value)
     setErrors(found)
     if (found.length > 0) return
-    upsertSpot(projectId as string, value)
+    await repo.upsertSpot(projectId as string, value)
     navigate(`/${projectId}`)
   }
 

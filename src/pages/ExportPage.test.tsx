@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { ExportPage } from './ExportPage'
+import { Providers } from '../test/providers'
 import { createProject, upsertSpot } from '../lib/storage/projectStore'
 import type { SpotDraft } from '../lib/schema/types'
 
@@ -48,28 +49,30 @@ function seed(spots: SpotDraft[]): string {
 
 function renderExport(id: string) {
   render(
-    <MemoryRouter initialEntries={[`/${id}/export`]}>
-      <Routes>
-        <Route path="/:projectId/export" element={<ExportPage />} />
-      </Routes>
-    </MemoryRouter>,
+    <Providers>
+      <MemoryRouter initialEntries={[`/${id}/export`]}>
+        <Routes>
+          <Route path="/:projectId/export" element={<ExportPage />} />
+        </Routes>
+      </MemoryRouter>
+    </Providers>,
   )
 }
 
 describe('ExportPage', () => {
-  test('enables export when published spots are valid', () => {
+  test('enables export when published spots are valid', async () => {
     renderExport(seed([spot('a', 1), spot('b', 2)]))
-    expect(screen.getByRole('button', { name: /ダウンロード/ })).toBeEnabled()
+    expect(await screen.findByRole('button', { name: /ダウンロード/ })).toBeEnabled()
   })
 
-  test('blocks export when a published spot has validation errors', () => {
+  test('blocks export when a published spot has validation errors', async () => {
     renderExport(seed([spot('bad-url', 1, { source_url: 'not-a-url' })]))
-    expect(screen.getByRole('button', { name: /ダウンロード/ })).toBeDisabled()
+    expect(await screen.findByRole('button', { name: /ダウンロード/ })).toBeDisabled()
     expect(screen.getByText(/未解決のエラー/)).toBeInTheDocument()
   })
 
-  test('warns about duplicate/gap in sort_order', () => {
+  test('warns about duplicate/gap in sort_order', async () => {
     renderExport(seed([spot('a', 1), spot('b', 1)]))
-    expect(screen.getByText(/モデルコース順/)).toBeInTheDocument()
+    expect(await screen.findByText(/モデルコース順/)).toBeInTheDocument()
   })
 })

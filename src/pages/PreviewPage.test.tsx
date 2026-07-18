@@ -2,6 +2,7 @@ import { describe, expect, test, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { PreviewPage } from './PreviewPage'
+import { Providers } from '../test/providers'
 import { STORAGE_KEY } from '../lib/storage/projectStore'
 import type { Project } from '../lib/schema/types'
 
@@ -87,11 +88,13 @@ const project: Project = {
 
 function renderPage() {
   return render(
-    <MemoryRouter initialEntries={['/p1/preview']}>
-      <Routes>
-        <Route path="/:projectId/preview" element={<PreviewPage />} />
-      </Routes>
-    </MemoryRouter>,
+    <Providers>
+      <MemoryRouter initialEntries={['/p1/preview']}>
+        <Routes>
+          <Route path="/:projectId/preview" element={<PreviewPage />} />
+        </Routes>
+      </MemoryRouter>
+    </Providers>,
   )
 }
 
@@ -100,16 +103,16 @@ describe('PreviewPage', () => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify([project]))
   })
 
-  test('renders spots in model-course order', () => {
+  test('renders spots in model-course order', async () => {
     renderPage()
-    const items = screen.getAllByTestId('preview-list-item')
+    const items = await screen.findAllByTestId('preview-list-item')
     expect(items[0]).toHaveTextContent('一番目')
     expect(items[1]).toHaveTextContent('二番目')
   })
 
-  test('renders the category legend', () => {
+  test('renders the category legend', async () => {
     renderPage()
-    const legend = within(screen.getByTestId('category-legend'))
+    const legend = within(await screen.findByTestId('category-legend'))
     expect(legend.getByText('作品ゆかり')).toBeInTheDocument()
     expect(legend.getByText('町歩き')).toBeInTheDocument()
   })

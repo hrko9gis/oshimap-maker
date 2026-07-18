@@ -1,31 +1,31 @@
-import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { SpotRow } from '../components/SpotRow'
 import { orderByCourse } from '../lib/schema/course'
-import { deleteSpot, findProject, upsertSpot } from '../lib/storage/projectStore'
+import { useProject } from '../hooks/useProject'
+import { useRepository } from '../context/RepositoryContext'
 import type { SpotDraft } from '../lib/schema/types'
 
 export function SpotListPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  const [project, setProject] = useState(() => (projectId ? findProject(projectId) : null))
+  const repo = useRepository()
+  const { project, loading, error, reload } = useProject(projectId)
 
-  if (!project || !projectId) {
-    return <div className="p-4 text-dusk-800">プロジェクトが見つかりません。</div>
-  }
+  if (loading) return <div className="p-4 text-dusk-700">読み込み中…</div>
+  if (error) return <div className="p-4 text-red-700">{error}</div>
+  if (!project || !projectId) return <div className="p-4 text-dusk-800">プロジェクトが見つかりません。</div>
 
   const ordered = orderByCourse(project.spots)
 
-  /** 2つのスポットの sort_order を入れ替えて保存する。 */
-  function swap(a: SpotDraft, b: SpotDraft) {
-    upsertSpot(projectId as string, { ...a, sort_order: b.sort_order })
-    const updated = upsertSpot(projectId as string, { ...b, sort_order: a.sort_order })
-    setProject(updated)
+  async function swap(a: SpotDraft, b: SpotDraft) {
+    await repo.upsertSpot(projectId as string, { ...a, sort_order: b.sort_order })
+    await repo.upsertSpot(projectId as string, { ...b, sort_order: a.sort_order })
+    reload()
   }
-
-  function handleDelete(spotId: string) {
+  async function handleDelete(spotId: string) {
     if (!window.confirm('このスポットを削除しますか？')) return
-    setProject(deleteSpot(projectId as string, spotId))
+    await repo.deleteSpot(projectId as string, spotId)
+    reload()
   }
 
   return (

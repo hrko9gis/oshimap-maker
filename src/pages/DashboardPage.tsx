@@ -3,21 +3,23 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ProjectForm, blankProjectDraft } from '../components/ProjectForm'
 import type { ProjectDraft } from '../components/ProjectForm'
 import { validateProject } from '../lib/schema/validation'
-import { createProject, loadProjects } from '../lib/storage/projectStore'
+import { useProjects } from '../hooks/useProjects'
+import { useRepository } from '../context/RepositoryContext'
 import type { FieldError } from '../lib/schema/types'
 
 export function DashboardPage() {
   const navigate = useNavigate()
-  const [projects] = useState(() => loadProjects())
+  const repo = useRepository()
+  const { projects, loading, error } = useProjects()
   const [draft, setDraft] = useState<ProjectDraft>(blankProjectDraft)
   const [errors, setErrors] = useState<FieldError[]>([])
   const [creating, setCreating] = useState(false)
 
-  function handleCreate(value: ProjectDraft) {
+  async function handleCreate(value: ProjectDraft) {
     const found = validateProject(value)
     setErrors(found)
     if (found.length > 0) return
-    const project = createProject({
+    const project = await repo.createProject({
       title: value.title,
       area_name: value.area_name,
       description: value.description,
@@ -36,7 +38,11 @@ export function DashboardPage() {
 
       <section className="mt-4">
         <h2 className="text-sm font-semibold text-dusk-800">プロジェクト一覧</h2>
-        {projects.length === 0 ? (
+        {loading ? (
+          <p className="mt-1 text-sm text-dusk-600">読み込み中…</p>
+        ) : error ? (
+          <p className="mt-1 text-sm text-red-700">{error}</p>
+        ) : projects.length === 0 ? (
           <p className="mt-1 text-sm text-dusk-600">まだプロジェクトがありません。</p>
         ) : (
           <ul className="mt-2 flex flex-col gap-1">

@@ -6,15 +6,19 @@ import {
   canPublish,
   needsLocationReminder,
 } from '../lib/publish/checklist'
-import { findProject, upsertSpot } from '../lib/storage/projectStore'
+import { useProject } from '../hooks/useProject'
+import { useRepository } from '../context/RepositoryContext'
 
 export function PublishCheckPage() {
   const { projectId, spotId } = useParams()
   const navigate = useNavigate()
-  const project = projectId ? findProject(projectId) : null
-  const spot = project?.spots.find((s) => s.id === spotId) ?? null
+  const repo = useRepository()
+  const { project, loading, error } = useProject(projectId)
   const [confirmed, setConfirmed] = useState<string[]>([])
 
+  if (loading) return <div className="p-4 text-dusk-700">読み込み中…</div>
+  if (error) return <div className="p-4 text-red-700">{error}</div>
+  const spot = project?.spots.find((s) => s.id === spotId) ?? null
   if (!project || !projectId || !spot) {
     return <div className="p-4 text-dusk-800">スポットが見つかりません。</div>
   }
@@ -26,9 +30,9 @@ export function PublishCheckPage() {
     setConfirmed((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
   }
 
-  function handlePublish() {
+  async function handlePublish() {
     if (!publishable || !project || !spot) return
-    upsertSpot(projectId as string, { ...spot, status: 'published' })
+    await repo.upsertSpot(projectId as string, { ...spot, status: 'published' })
     navigate(`/${projectId}`)
   }
 

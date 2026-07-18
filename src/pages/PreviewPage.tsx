@@ -3,12 +3,14 @@ import { PreviewMap } from '../components/PreviewMap'
 import { CATEGORY_COLORS, CATEGORY_LABELS_JA } from '../lib/schema/categories'
 import { CATEGORY_ORDER } from '../lib/schema/constants'
 import { orderByCourse } from '../lib/schema/course'
-import { findProject } from '../lib/storage/projectStore'
+import { useProject } from '../hooks/useProject'
 
 export function PreviewPage() {
   const { projectId } = useParams()
-  const project = projectId ? findProject(projectId) : null
+  const { project, loading, error } = useProject(projectId)
 
+  if (loading) return <div className="p-4 text-dusk-700">読み込み中…</div>
+  if (error) return <div className="p-4 text-red-700">{error}</div>
   if (!project || !projectId) {
     return <div className="p-4 text-dusk-800">プロジェクトが見つかりません。</div>
   }

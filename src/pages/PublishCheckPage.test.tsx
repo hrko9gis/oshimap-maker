@@ -1,7 +1,8 @@
 import { describe, expect, test, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { PublishCheckPage } from './PublishCheckPage'
+import { Providers } from '../test/providers'
 import { STORAGE_KEY } from '../lib/storage/projectStore'
 import { MANUAL_CHECK_ITEMS } from '../lib/publish/checklist'
 import type { Project } from '../lib/schema/types'
@@ -39,12 +40,14 @@ const project: Project = {
 
 function renderPage() {
   return render(
-    <MemoryRouter initialEntries={['/p1/spots/takehara-station/publish-check']}>
-      <Routes>
-        <Route path="/:projectId/spots/:spotId/publish-check" element={<PublishCheckPage />} />
-        <Route path="/:projectId" element={<div>スポット一覧</div>} />
-      </Routes>
-    </MemoryRouter>,
+    <Providers>
+      <MemoryRouter initialEntries={['/p1/spots/takehara-station/publish-check']}>
+        <Routes>
+          <Route path="/:projectId/spots/:spotId/publish-check" element={<PublishCheckPage />} />
+          <Route path="/:projectId" element={<div>スポット一覧</div>} />
+        </Routes>
+      </MemoryRouter>
+    </Providers>,
   )
 }
 
@@ -53,9 +56,9 @@ describe('PublishCheckPage', () => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify([project]))
   })
 
-  test('publish button is disabled until all manual items are checked', () => {
+  test('publish button is disabled until all manual items are checked', async () => {
     renderPage()
-    const button = screen.getByRole('button', { name: '公開する' })
+    const button = await screen.findByRole('button', { name: '公開する' })
     expect(button).toBeDisabled()
     for (const item of MANUAL_CHECK_ITEMS) {
       fireEvent.click(screen.getByLabelText(item.label))
@@ -63,13 +66,16 @@ describe('PublishCheckPage', () => {
     expect(button).toBeEnabled()
   })
 
-  test('publishing sets the spot status to published in storage', () => {
+  test('publishing sets the spot status to published in storage', async () => {
     renderPage()
+    const button = await screen.findByRole('button', { name: '公開する' })
     for (const item of MANUAL_CHECK_ITEMS) {
       fireEvent.click(screen.getByLabelText(item.label))
     }
-    fireEvent.click(screen.getByRole('button', { name: '公開する' }))
-    const stored: Project[] = JSON.parse(window.localStorage.getItem(STORAGE_KEY) as string)
-    expect(stored[0].spots[0].status).toBe('published')
+    fireEvent.click(button)
+    await waitFor(() => {
+      const stored: Project[] = JSON.parse(window.localStorage.getItem(STORAGE_KEY) as string)
+      expect(stored[0].spots[0].status).toBe('published')
+    })
   })
 })

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { SpotListPage } from './SpotListPage'
+import { Providers } from '../test/providers'
 import { createProject, upsertSpot } from '../lib/storage/projectStore'
 import type { SpotDraft } from '../lib/schema/types'
 
@@ -42,16 +43,18 @@ function seedProject(): string {
 }
 
 describe('SpotListPage', () => {
-  test('renders spots in course order with status badges', () => {
+  test('renders spots in course order with status badges', async () => {
     const id = seedProject()
     render(
-      <MemoryRouter initialEntries={[`/${id}`]}>
-        <Routes>
-          <Route path="/:projectId" element={<SpotListPage />} />
-        </Routes>
-      </MemoryRouter>,
+      <Providers>
+        <MemoryRouter initialEntries={[`/${id}`]}>
+          <Routes>
+            <Route path="/:projectId" element={<SpotListPage />} />
+          </Routes>
+        </MemoryRouter>
+      </Providers>,
     )
-    const items = screen.getAllByRole('listitem')
+    const items = await screen.findAllByRole('listitem')
     // 番号バッジが 1,2,3 の順で並ぶ
     expect(items.map((li) => within(li).getByText(/^[123]$/).textContent)).toEqual(['1', '2', '3'])
     // ステータスバッジが表示される
