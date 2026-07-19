@@ -1,4 +1,5 @@
 import type {
+  Bilingual,
   Project,
   ProjectJson,
   SpotDraft,
@@ -12,6 +13,11 @@ function publishedSpots(project: Project): SpotDraft[] {
   return project.spots.filter((s) => s.status === 'published')
 }
 
+/** 英語が空なら日本語で補完する（ビューアは ja/en 二言語前提のため）。英語入力は任意。 */
+function bi(value: Bilingual): Bilingual {
+  return { ja: value.ja, en: value.en && value.en.trim() ? value.en : value.ja }
+}
+
 /**
  * published スポットの properties を許可リストで組み立てる。
  * lng/lat は geometry へ、stamp_keyword_answer（合言葉平文）は絶対に含めない。
@@ -19,22 +25,22 @@ function publishedSpots(project: Project): SpotDraft[] {
 function toProperties(spot: SpotDraft): SpotFeatureProperties {
   const props: SpotFeatureProperties = {
     id: spot.id,
-    title: spot.title,
+    title: bi(spot.title),
     category: spot.category,
-    summary: spot.summary,
+    summary: bi(spot.summary),
     source_url: spot.source_url,
-    source_name: spot.source_name,
+    source_name: bi(spot.source_name),
     location_accuracy: spot.location_accuracy,
     stamp_enabled: spot.stamp_enabled,
     sort_order: spot.sort_order,
     visit_difficulty: spot.visit_difficulty,
     status: 'published',
   }
-  if (spot.work_title) props.work_title = spot.work_title
-  if (spot.address) props.address = spot.address
-  if (spot.stamp_enabled && spot.stamp_keyword_hint) props.stamp_keyword_hint = spot.stamp_keyword_hint
+  if (spot.work_title) props.work_title = bi(spot.work_title)
+  if (spot.address) props.address = bi(spot.address)
+  if (spot.stamp_enabled && spot.stamp_keyword_hint) props.stamp_keyword_hint = bi(spot.stamp_keyword_hint)
   if (spot.estimated_stay_min != null) props.estimated_stay_min = spot.estimated_stay_min
-  if (spot.notes) props.notes = spot.notes
+  if (spot.notes) props.notes = bi(spot.notes)
   return props
 }
 
@@ -64,11 +70,11 @@ export async function buildStampAnswers(project: Project): Promise<StampAnswers>
 /** プロジェクト単位の表示設定（内部項目 visibility 等は含めない）。 */
 export function buildProjectJson(project: Project): ProjectJson {
   return {
-    title: project.title,
-    area_name: project.area_name,
-    description: project.description,
+    title: bi(project.title),
+    area_name: bi(project.area_name),
+    description: bi(project.description),
     default_language: project.default_language,
     license: project.license,
-    disclaimer: project.disclaimer,
+    disclaimer: bi(project.disclaimer),
   }
 }

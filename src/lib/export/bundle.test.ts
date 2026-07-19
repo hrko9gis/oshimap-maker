@@ -57,6 +57,17 @@ describe('buildSpotsGeoJSON', () => {
     const gj = buildSpotsGeoJSON(project)
     expect(gj.features[0].geometry.coordinates).toEqual([132.9, 34.3])
   })
+
+  test('falls back en to ja when English is empty (keeps bilingual for the viewer)', () => {
+    const p: Project = {
+      ...project,
+      spots: [spot('jaonly', { status: 'published', title: { ja: '竹原駅', en: '' }, summary: { ja: '概要', en: '' } })],
+    }
+    const gj = buildSpotsGeoJSON(p)
+    const props = gj.features[0].properties
+    expect(props.title).toEqual({ ja: '竹原駅', en: '竹原駅' })
+    expect(props.summary).toEqual({ ja: '概要', en: '概要' })
+  })
 })
 
 describe('buildStampAnswers', () => {
@@ -73,5 +84,10 @@ describe('buildProjectJson', () => {
     const pj = buildProjectJson(project)
     expect(pj.title.ja).toBe('T')
     expect(JSON.stringify(pj)).not.toContain('visibility')
+  })
+
+  test('falls back en to ja for empty English fields', () => {
+    const pj = buildProjectJson({ ...project, description: { ja: '説明', en: '' } })
+    expect(pj.description).toEqual({ ja: '説明', en: '説明' })
   })
 })

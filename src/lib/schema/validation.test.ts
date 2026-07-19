@@ -26,6 +26,17 @@ describe('validateSpot', () => {
     expect(validateSpot(makeSpot())).toEqual([])
   })
 
+  test('english fields are optional (ja only is valid)', () => {
+    const errs = validateSpot(
+      makeSpot({
+        title: { ja: 'JR竹原駅', en: '' },
+        summary: { ja: '起点となる駅。', en: '' },
+        source_name: { ja: '出典', en: '' },
+      }),
+    )
+    expect(errs).toEqual([])
+  })
+
   test('missing id and non-kebab id are flagged', () => {
     const errs = validateSpot(makeSpot({ id: 'Takehara Station' }))
     expect(errs.some((e) => e.field === 'id')).toBe(true)

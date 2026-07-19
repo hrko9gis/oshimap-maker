@@ -21,12 +21,10 @@ export function validateSpot(spot: SpotDraft): FieldError[] {
     errors.push({ field: 'id', message: 'kebab-case の一意IDが必要です' })
   }
   requireText(errors, 'title.ja', spot.title?.ja)
-  requireText(errors, 'title.en', spot.title?.en)
   if (!CATEGORY_ORDER.includes(spot.category)) {
     errors.push({ field: 'category', message: 'カテゴリが不正です' })
   }
   requireText(errors, 'summary.ja', spot.summary?.ja)
-  requireText(errors, 'summary.en', spot.summary?.en)
   if ((spot.summary?.ja ?? '').length > SUMMARY_MAX_LEN) {
     errors.push({ field: 'summary.ja', message: `${SUMMARY_MAX_LEN}字以内にしてください` })
   }
@@ -37,7 +35,6 @@ export function validateSpot(spot: SpotDraft): FieldError[] {
     errors.push({ field: 'source_url', message: 'http(s):// のURLが必要です' })
   }
   requireText(errors, 'source_name.ja', spot.source_name?.ja)
-  requireText(errors, 'source_name.en', spot.source_name?.en)
   if (!LOCATION_ACCURACY_VALUES.includes(spot.location_accuracy)) {
     errors.push({ field: 'location_accuracy', message: '位置精度が不正です' })
   }
@@ -59,7 +56,6 @@ export function validateSpot(spot: SpotDraft): FieldError[] {
   if (spot.stamp_enabled) {
     requireText(errors, 'stamp_keyword_answer', spot.stamp_keyword_answer)
     requireText(errors, 'stamp_keyword_hint.ja', spot.stamp_keyword_hint?.ja)
-    requireText(errors, 'stamp_keyword_hint.en', spot.stamp_keyword_hint?.en)
   }
 
   return errors
@@ -71,9 +67,7 @@ export function validateProject(
 ): FieldError[] {
   const errors: FieldError[] = []
   requireText(errors, 'title.ja', project.title?.ja)
-  requireText(errors, 'title.en', project.title?.en)
   requireText(errors, 'disclaimer.ja', project.disclaimer?.ja)
-  requireText(errors, 'disclaimer.en', project.disclaimer?.en)
   requireText(errors, 'license', project.license)
   return errors
 }
