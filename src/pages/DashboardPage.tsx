@@ -15,22 +15,28 @@ export function DashboardPage() {
   const [draft, setDraft] = useState<ProjectDraft>(blankProjectDraft)
   const [errors, setErrors] = useState<FieldError[]>([])
   const [creating, setCreating] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   async function handleCreate(value: ProjectDraft) {
     const found = validateProject(value)
     setErrors(found)
     if (found.length > 0) return
-    const project = await repo.createProject({
-      title: value.title,
-      area_name: value.area_name,
-      description: value.description,
-      theme_type: value.theme_type,
-      default_language: value.default_language,
-      license: value.license,
-      disclaimer: value.disclaimer,
-      official_url: value.official_url,
-    })
-    navigate(`/${project.id}`)
+    setSubmitError(null)
+    try {
+      const project = await repo.createProject({
+        title: value.title,
+        area_name: value.area_name,
+        description: value.description,
+        theme_type: value.theme_type,
+        default_language: value.default_language,
+        license: value.license,
+        disclaimer: value.disclaimer,
+        official_url: value.official_url,
+      })
+      navigate(`/${project.id}`)
+    } catch (e: unknown) {
+      setSubmitError(e instanceof Error ? e.message : '作成に失敗しました。時間をおいて再度お試しください。')
+    }
   }
 
   return (
@@ -70,6 +76,9 @@ export function DashboardPage() {
               errors={errors}
               submitLabel="作成"
             />
+            {submitError && (
+              <p className="mt-2 rounded bg-red-50 p-2 text-sm text-red-700">{submitError}</p>
+            )}
           </>
         ) : (
           <button

@@ -10,6 +10,13 @@ const VISIBILITY_LABELS: Record<ProjectVisibility, string> = {
   unlisted: '限定公開',
   public: '公開',
 }
+const FIELD_LABELS: Record<string, string> = {
+  'title.ja': 'マップ名（日本語）',
+  'title.en': 'マップ名（英語）',
+  'disclaimer.ja': '注意書き（日本語）',
+  'disclaimer.en': '注意書き（英語）',
+  license: 'ライセンス',
+}
 
 interface ProjectFormProps {
   value: ProjectDraft
@@ -45,6 +52,19 @@ export function ProjectForm({
         onSubmit(value)
       }}
     >
+      {errors.length > 0 && (
+        <div className="rounded bg-red-50 p-2 text-sm text-red-700">
+          <p className="font-semibold">未入力の必須項目があります：</p>
+          <ul className="mt-1 list-disc pl-5">
+            {errors.map((e) => (
+              <li key={e.field}>
+                {FIELD_LABELS[e.field] ?? e.field}：{e.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <BilingualInput label="マップ名" value={value.title} onChange={(v) => set('title', v)} />
       <ErrorText errors={errors} field="title.ja" />
 
