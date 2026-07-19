@@ -30,7 +30,10 @@ export function SpotListPage() {
 
   return (
     <div className="mx-auto max-w-xl p-4">
-      <h1 className="text-lg font-bold text-dusk-900">{project.title.ja || '(名称未設定)'}</h1>
+      <Link to="/" className="text-sm text-dusk-600 underline">
+        ← プロジェクト一覧へ
+      </Link>
+      <h1 className="mt-2 text-lg font-bold text-dusk-900">{project.title.ja || '(名称未設定)'}</h1>
       <div className="mt-2 flex flex-wrap gap-2 text-sm">
         <Link to={`/${projectId}/settings`} className="text-dusk-700 underline">
           プロジェクト設定
@@ -40,9 +43,6 @@ export function SpotListPage() {
         </Link>
         <Link to={`/${projectId}/export`} className="text-dusk-700 underline">
           エクスポート
-        </Link>
-        <Link to="/" className="text-dusk-700 underline">
-          ダッシュボード
         </Link>
       </div>
 

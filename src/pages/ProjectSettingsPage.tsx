@@ -46,9 +46,14 @@ export function ProjectSettingsPage() {
 
   return (
     <div className="mx-auto max-w-xl p-4">
-      <Link to={`/${projectId}`} className="text-sm text-dusk-600 underline">
-        ← スポット一覧へ
-      </Link>
+      <div className="flex flex-wrap gap-3 text-sm">
+        <Link to={`/${projectId}`} className="text-dusk-600 underline">
+          ← スポット一覧へ
+        </Link>
+        <Link to="/" className="text-dusk-600 underline">
+          プロジェクト一覧へ
+        </Link>
+      </div>
       <h1 className="mb-4 mt-2 text-lg font-bold text-dusk-900">プロジェクト設定</h1>
       <ProjectForm
         value={draft}
