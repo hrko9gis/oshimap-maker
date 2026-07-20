@@ -1,7 +1,7 @@
 import type { Project, SpotDraft } from '../schema/types'
 import type { NewProjectInput, ProjectRepository } from './types'
 import {
-  loadProjects, createProject, saveProject, upsertSpot, deleteSpot, findProject,
+  loadProjects, createProject, saveProject, deleteProject, upsertSpot, deleteSpot, findProject,
 } from '../storage/projectStore'
 
 /** 既存の同期 projectStore を非同期インターフェイスでラップする（既存挙動を維持）。 */
@@ -19,6 +19,9 @@ export class LocalStorageRepository implements ProjectRepository {
   }
   async saveProject(project: Project): Promise<Project> {
     return saveProject(project, this.storage)
+  }
+  async deleteProject(id: string): Promise<void> {
+    deleteProject(id, this.storage)
   }
   async upsertSpot(projectId: string, spot: SpotDraft): Promise<Project> {
     return upsertSpot(projectId, spot, this.storage)

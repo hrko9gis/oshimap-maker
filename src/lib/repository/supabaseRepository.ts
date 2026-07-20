@@ -55,6 +55,12 @@ export class SupabaseRepository implements ProjectRepository {
     return { ...project, updatedAt: new Date().toISOString() }
   }
 
+  async deleteProject(id: string): Promise<void> {
+    // spots / project_members は project_id の ON DELETE CASCADE で自動削除される。
+    const { error } = await this.client.from('projects').delete().eq('id', id)
+    if (error) throw error
+  }
+
   async upsertSpot(projectId: string, spot: SpotDraft): Promise<Project> {
     const row = await spotToRow(spot, projectId)
     const { error } = await this.client.from('spots').upsert(row)

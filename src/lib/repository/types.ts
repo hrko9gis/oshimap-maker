@@ -9,6 +9,7 @@ export interface ProjectRepository {
   getProject(id: string): Promise<Project | null>
   createProject(input: NewProjectInput): Promise<Project>
   saveProject(project: Project): Promise<Project>
+  deleteProject(id: string): Promise<void>
   upsertSpot(projectId: string, spot: SpotDraft): Promise<Project>
   deleteSpot(projectId: string, spotId: string): Promise<Project>
 }

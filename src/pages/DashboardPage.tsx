@@ -16,6 +16,24 @@ export function DashboardPage() {
   const [errors, setErrors] = useState<FieldError[]>([])
   const [creating, setCreating] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  async function handleDelete(id: string, name: string, spotCount: number) {
+    const label = name || '(名称未設定)'
+    if (
+      !window.confirm(
+        `プロジェクト「${label}」（${spotCount}スポット）を削除します。\nこの操作は取り消せません。よろしいですか？`,
+      )
+    )
+      return
+    setDeleteError(null)
+    try {
+      await repo.deleteProject(id)
+      reload()
+    } catch (e: unknown) {
+      setDeleteError(e instanceof Error ? e.message : '削除に失敗しました。時間をおいて再度お試しください。')
+    }
+  }
 
   async function handleCreate(value: ProjectDraft) {
     const found = validateProject(value)
@@ -54,13 +72,24 @@ export function DashboardPage() {
         ) : (
           <ul className="mt-2 flex flex-col gap-1">
             {projects.map((p) => (
-              <li key={p.id}>
+              <li key={p.id} className="flex items-center justify-between gap-2">
                 <Link to={`/${p.id}`} className="text-dusk-700 underline">
                   {p.title.ja || '(名称未設定)'}（{p.spots.length}スポット）
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(p.id, p.title.ja, p.spots.length)}
+                  className="shrink-0 rounded border border-red-300 px-2 py-0.5 text-xs text-red-700 hover:bg-red-50"
+                  aria-label={`${p.title.ja || '(名称未設定)'}を削除`}
+                >
+                  削除
+                </button>
               </li>
             ))}
           </ul>
+        )}
+        {deleteError && (
+          <p className="mt-2 rounded bg-red-50 p-2 text-sm text-red-700">{deleteError}</p>
         )}
         <ImportLocalButton onDone={reload} />
       </section>

@@ -119,6 +119,15 @@ export function deleteSpot(
   )
 }
 
+/** プロジェクトを id で削除する（spots も含めて破棄）。存在しない id は無視する。 */
+export function deleteProject(
+  projectId: string,
+  storage: Storage = window.localStorage,
+): void {
+  const next = loadProjects(storage).filter((p) => p.id !== projectId)
+  saveProjects(next, storage)
+}
+
 export function findProject(
   projectId: string,
   storage: Storage = window.localStorage,

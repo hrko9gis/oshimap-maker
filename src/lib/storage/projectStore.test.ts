@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'vitest'
-import { createProject, deleteSpot, loadProjects, upsertSpot } from './projectStore'
+import { createProject, deleteProject, deleteSpot, loadProjects, upsertSpot } from './projectStore'
 import type { SpotDraft } from '../schema/types'
 
 beforeEach(() => localStorage.clear())
@@ -54,6 +54,20 @@ describe('projectStore', () => {
     upsertSpot(p.id, spot('a', 1))
     const after = deleteSpot(p.id, 'a')
     expect(after.spots).toHaveLength(0)
+  })
+
+  test('deleteProject removes only the target project', () => {
+    const a = createProject(newInput)
+    const b = createProject(newInput)
+    deleteProject(a.id)
+    const remaining = loadProjects()
+    expect(remaining.map((p) => p.id)).toEqual([b.id])
+  })
+
+  test('deleteProject on a missing id leaves storage unchanged', () => {
+    const a = createProject(newInput)
+    deleteProject('does-not-exist')
+    expect(loadProjects().map((p) => p.id)).toEqual([a.id])
   })
 
   test('corrupt storage returns empty list', () => {
