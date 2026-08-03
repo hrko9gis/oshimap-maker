@@ -293,15 +293,15 @@ v1の目標構成として本書にも記載するが、MVPの必須要件には
 
 | カラム | 内容 | 実装済みenum・型との整合 |
 |---|---|---|
-| id | スポットID（kebab-case推奨） | `data/schema.md` の `id` と同一形式 |
+| id | スポットID（kebab-case、Maker側で `spot-`+ランダム英数字8桁を自動採番。ユーザー入力不要） | `data/schema.md` の `id` と同一形式 |
 | project_id | 所属プロジェクト | Maker内部管理用。エクスポート時は除外 |
 | title | スポット名（`{ ja, en }`） | `SpotProperties.title` |
 | work_title | 作品名（`{ ja, en }`、任意） | `SpotProperties.work_title` |
 | character_name | 推し対象（キャラクター名等） | **拡張フィールド**：現行ビューアのスキーマには存在しない。Makerのフォーム項目としては保持するが、ビューア側スキーマへ追加するかはv1着手時に判断する（当面は `summary` に含めて表現するか、ビューア汎用化時にオプションフィールドとして追加する） |
 | category | `anime_spot \| townscape \| transport \| rest \| shopping \| viewpoint` | 実装済みenumと完全一致（拡張は行わない。計画書v2の「テンプレートで拡張可」はv1以降の検討事項） |
 | summary | 独自作成の短い概要（`{ ja, en }`、各120字以内） | `SpotProperties.summary` |
-| source_url | 公式・観光リンク | `SpotProperties.source_url` |
-| source_name | 出典名（`{ ja, en }`） | `SpotProperties.source_name` |
+| source_url | 公式・観光リンク（任意） | `SpotProperties.source_url` |
+| source_name | 出典名（`{ ja, en }`、任意） | `SpotProperties.source_name` |
 | address | 住所（`{ ja, en }`、任意） | `SpotProperties.address` |
 | geom | 緯度経度（PostGIS geometry または単純な `{ lng, lat }`） | エクスポート時は GeoJSON `Feature.geometry.coordinates` に変換 |
 | location_accuracy | `exact \| approximate \| area` | 実装済みenumと完全一致 |
@@ -407,9 +407,9 @@ Maker はこれらの画面のUIコードを新規に持たない。プレビュ
 
 計画書v2 §9.2 の入力項目を、§5.2 のデータモデルに従ってフォーム化する。
 
-- 必須項目（`data/schema.md` 準拠）：id、title(ja/en)、category、summary(ja/en、各120字以内)、
-  source_url、source_name(ja/en)、location_accuracy、stamp_enabled、sort_order、
-  visit_difficulty、status
+- 必須項目：id（Maker側で自動採番）、title(ja/en)、category、summary(ja/en、各120字以内)、
+  location_accuracy、stamp_enabled、sort_order、visit_difficulty、status
+- source_url、source_name(ja/en) は任意項目とする（公開時にも必須としない）
 - `stamp_enabled=true` の場合、`stamp_keyword_hint`(ja/en) と `stamp_keyword_answer`（平文、
   Maker内部のみ保持）を必須とする
 - `summary` は120字を超える入力をフォームレベルで警告する（ビューアと同じ品質基準を
@@ -487,7 +487,6 @@ QRコード一覧・簡易マップ画像/PDF出力は非スコープ（§1.3、
 
 - 公式画像・アニメ画像・無断転載写真を使用していないか（テキストのみで確認、自動検知は行わない）
 - 説明文（`summary`）が独自作成の短い概要か（120字制限で機械的にチェック）
-- 公式・観光サイトへのリンク（`source_url`）が設定されているか（必須項目のためフォーム側で担保）
 - 私有地・住宅地への立入を促していないか（`location_accuracy`が`area`かどうかの確認を促す）
 - 営業時間・休館日は公式サイト確認を促す文言になっているか
 - 非公式ファンプロジェクトである旨が `projects.disclaimer` に含まれているか
