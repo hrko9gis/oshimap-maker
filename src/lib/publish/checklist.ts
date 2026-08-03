@@ -36,11 +36,6 @@ export function automatedChecks(spot: SpotDraft, project: Project): CheckResult[
       passed: summaryOk,
     },
     {
-      id: 'source_url',
-      label: '公式・観光リンク（source_url）が設定されている',
-      passed: /^https?:\/\//.test(spot.source_url ?? ''),
-    },
-    {
       id: 'disclaimer',
       label: 'プロジェクトに非公式の断り書き（disclaimer）がある',
       passed: disclaimerOk,
