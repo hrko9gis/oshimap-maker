@@ -52,6 +52,11 @@ describe('validateSpot', () => {
     expect(errs.some((e) => e.field === 'source_url')).toBe(true)
   })
 
+  test('whitespace-only source_url is treated as empty, not an invalid URL', () => {
+    const errs = validateSpot(makeSpot({ source_url: '   ' }))
+    expect(errs.some((e) => e.field === 'source_url')).toBe(false)
+  })
+
   test('empty source_url and source_name are valid (both optional)', () => {
     const errs = validateSpot(
       makeSpot({ source_url: '', source_name: { ja: '', en: '' } }),
