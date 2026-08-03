@@ -73,11 +73,11 @@ export function SpotForm({ value, onChange, onSubmit, errors }: SpotFormProps) {
       }}
     >
       <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-dusk-800">ID（kebab-case）</span>
+        <span className="text-sm font-medium text-dusk-800">ID（自動生成）</span>
         <input
-          className="rounded border border-dusk-300 px-2 py-1 text-sm"
+          readOnly
+          className="rounded border border-dusk-300 bg-dusk-100 px-2 py-1 text-sm text-dusk-600"
           value={value.id}
-          onChange={(e) => set('id', e.target.value)}
         />
         <ErrorText errors={errors} field="id" />
       </label>
@@ -110,7 +110,7 @@ export function SpotForm({ value, onChange, onSubmit, errors }: SpotFormProps) {
       />
 
       <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-dusk-800">公式・観光リンク（http(s)://）</span>
+        <span className="text-sm font-medium text-dusk-800">公式・観光リンク（http(s)://・任意）</span>
         <input
           className="rounded border border-dusk-300 px-2 py-1 text-sm"
           value={value.source_url}
@@ -119,7 +119,7 @@ export function SpotForm({ value, onChange, onSubmit, errors }: SpotFormProps) {
         <ErrorText errors={errors} field="source_url" />
       </label>
 
-      <BilingualInput label="出典名" value={value.source_name} onChange={(v) => set('source_name', v)} />
+      <BilingualInput label="出典名（任意）" value={value.source_name} onChange={(v) => set('source_name', v)} />
 
       <BilingualInput
         label="住所（任意）"

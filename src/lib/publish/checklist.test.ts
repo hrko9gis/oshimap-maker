@@ -62,6 +62,11 @@ describe('automatedChecks', () => {
     const result = automatedChecks(validSpot, bad).find((c) => c.id === 'disclaimer')
     expect(result?.passed).toBe(false)
   })
+
+  test('does not include a source_url-specific check item', () => {
+    const ids = automatedChecks(validSpot, project).map((c) => c.id)
+    expect(ids).not.toContain('source_url')
+  })
 })
 
 describe('needsLocationReminder', () => {
@@ -82,5 +87,14 @@ describe('canPublish', () => {
   })
   test('false when automated fail even if all manual confirmed', () => {
     expect(canPublish({ ...validSpot, source_url: 'not-a-url' }, project, allManualIds)).toBe(false)
+  })
+
+  test('true even when source_url and source_name are empty', () => {
+    const spotWithoutSource = {
+      ...validSpot,
+      source_url: '',
+      source_name: { ja: '', en: '' },
+    }
+    expect(canPublish(spotWithoutSource, project, allManualIds)).toBe(true)
   })
 })

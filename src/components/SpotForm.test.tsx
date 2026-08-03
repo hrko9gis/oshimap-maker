@@ -60,4 +60,24 @@ describe('SpotForm', () => {
     render(<SpotForm value={base} onChange={() => {}} onSubmit={() => {}} errors={validateSpot(base)} />)
     expect(screen.getByText('kebab-case の一意IDが必要です')).toBeInTheDocument()
   })
+
+  test('id field is read-only and labeled as auto-generated', () => {
+    render(
+      <SpotForm
+        value={{ ...base, id: 'spot-abcd1234' }}
+        onChange={() => {}}
+        onSubmit={() => {}}
+        errors={[]}
+      />,
+    )
+    const idInput = screen.getByLabelText('ID（自動生成）') as HTMLInputElement
+    expect(idInput).toHaveAttribute('readonly')
+    expect(idInput.value).toBe('spot-abcd1234')
+  })
+
+  test('source_url and source_name labels indicate they are optional', () => {
+    render(<SpotForm value={base} onChange={() => {}} onSubmit={() => {}} errors={[]} />)
+    expect(screen.getByText('公式・観光リンク（http(s)://・任意）')).toBeInTheDocument()
+    expect(screen.getByText('出典名（任意）')).toBeInTheDocument()
+  })
 })
