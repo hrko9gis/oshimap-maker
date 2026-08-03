@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { SpotForm } from '../components/SpotForm'
 import { validateSpot } from '../lib/schema/validation'
+import { generateSpotId } from '../lib/schema/id'
 import { useProject } from '../hooks/useProject'
 import { useRepository } from '../context/RepositoryContext'
 import type { FieldError, SpotDraft } from '../lib/schema/types'
 
-function emptySpot(): SpotDraft {
+export function emptySpot(existingIds: readonly string[]): SpotDraft {
   return {
-    id: '',
+    id: generateSpotId(existingIds),
     title: { ja: '', en: '' },
     category: 'anime_spot',
     summary: { ja: '', en: '' },
@@ -35,7 +36,8 @@ export function SpotEditorPage() {
   useEffect(() => {
     if (loading) return
     const existing = project?.spots.find((s) => s.id === spotId)
-    setDraft(existing ? { ...existing } : emptySpot())
+    const existingIds = project?.spots.map((s) => s.id) ?? []
+    setDraft(existing ? { ...existing } : emptySpot(existingIds))
   }, [loading, project, spotId])
 
   if (loading || !draft) return <div className="p-4 text-dusk-700">読み込み中…</div>
