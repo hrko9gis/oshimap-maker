@@ -31,10 +31,9 @@ export function validateSpot(spot: SpotDraft): FieldError[] {
   if ((spot.summary?.en ?? '').length > SUMMARY_MAX_LEN) {
     errors.push({ field: 'summary.en', message: `${SUMMARY_MAX_LEN}字以内にしてください` })
   }
-  if (!/^https?:\/\//.test(spot.source_url ?? '')) {
-    errors.push({ field: 'source_url', message: 'http(s):// のURLが必要です' })
+  if (spot.source_url && !/^https?:\/\//.test(spot.source_url)) {
+    errors.push({ field: 'source_url', message: 'http(s):// のURLを入力してください' })
   }
-  requireText(errors, 'source_name.ja', spot.source_name?.ja)
   if (!LOCATION_ACCURACY_VALUES.includes(spot.location_accuracy)) {
     errors.push({ field: 'location_accuracy', message: '位置精度が不正です' })
   }

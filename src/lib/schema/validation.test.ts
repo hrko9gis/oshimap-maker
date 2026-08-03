@@ -52,6 +52,14 @@ describe('validateSpot', () => {
     expect(errs.some((e) => e.field === 'source_url')).toBe(true)
   })
 
+  test('empty source_url and source_name are valid (both optional)', () => {
+    const errs = validateSpot(
+      makeSpot({ source_url: '', source_name: { ja: '', en: '' } }),
+    )
+    expect(errs.some((e) => e.field === 'source_url')).toBe(false)
+    expect(errs.some((e) => e.field === 'source_name.ja')).toBe(false)
+  })
+
   test('stamp_enabled requires keyword answer and hint', () => {
     const errs = validateSpot(makeSpot({ stamp_enabled: true }))
     expect(errs.some((e) => e.field === 'stamp_keyword_answer')).toBe(true)
