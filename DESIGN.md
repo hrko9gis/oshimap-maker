@@ -300,8 +300,8 @@ v1の目標構成として本書にも記載するが、MVPの必須要件には
 | character_name | 推し対象（キャラクター名等） | **拡張フィールド**：現行ビューアのスキーマには存在しない。Makerのフォーム項目としては保持するが、ビューア側スキーマへ追加するかはv1着手時に判断する（当面は `summary` に含めて表現するか、ビューア汎用化時にオプションフィールドとして追加する） |
 | category | `anime_spot \| townscape \| transport \| rest \| shopping \| viewpoint` | 実装済みenumと完全一致（拡張は行わない。計画書v2の「テンプレートで拡張可」はv1以降の検討事項） |
 | summary | 独自作成の短い概要（`{ ja, en }`、各120字以内） | `SpotProperties.summary` |
-| source_url | 公式・観光リンク（任意） | `SpotProperties.source_url` |
-| source_name | 出典名（`{ ja, en }`、任意） | `SpotProperties.source_name` |
+| source_url | 公式・観光リンク（任意）。未入力ならGeoJSONエクスポートでプロパティ自体を省略 | `SpotProperties.source_url` |
+| source_name | 出典名（`{ ja, en }`、任意）。ja/enとも未入力ならGeoJSONエクスポートでプロパティ自体を省略 | `SpotProperties.source_name` |
 | address | 住所（`{ ja, en }`、任意） | `SpotProperties.address` |
 | geom | 緯度経度（PostGIS geometry または単純な `{ lng, lat }`） | エクスポート時は GeoJSON `Feature.geometry.coordinates` に変換 |
 | location_accuracy | `exact \| approximate \| area` | 実装済みenumと完全一致 |
@@ -314,6 +314,12 @@ v1の目標構成として本書にも記載するが、MVPの必須要件には
 | notes | 注意事項（`{ ja, en }`、任意） | `SpotProperties.notes` |
 | status | draft / review / published | `published` のスポットのみ `status: "published"` としてエクスポート。draft/reviewはビューアに渡さない（＝現行ビューアの「`status: "published"` のみ表示」前提と一致） |
 | created_at / updated_at | 監査用 | ビューアには渡さない |
+
+`source_url` / `source_name` を未入力のまま公開した場合、GeoJSONの `properties` から
+当該キー自体を省略する仕様は、ビューア側（別リポジトリ `oshimap`）と共有する GeoJSON
+契約の変更にあたる。本リポジトリからは `oshimap` を修正できないため、ビューア側の
+描画コードが `source_url` / `source_name` 未存在時にも安全に動作する（例：`<a href="">`
+のような空値レンダリングをしない）ことを別途確認する必要がある。
 
 ### 5.3 stamp_logs テーブル
 

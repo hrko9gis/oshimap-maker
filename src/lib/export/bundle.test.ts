@@ -68,6 +68,31 @@ describe('buildSpotsGeoJSON', () => {
     expect(props.title).toEqual({ ja: '竹原駅', en: '竹原駅' })
     expect(props.summary).toEqual({ ja: '概要', en: '概要' })
   })
+
+  test('omits source_url and source_name entirely when left blank', () => {
+    const p: Project = {
+      ...project,
+      spots: [
+        spot('blank-source', {
+          status: 'published',
+          source_url: '',
+          source_name: { ja: '', en: '' },
+        }),
+      ],
+    }
+    const gj = buildSpotsGeoJSON(p)
+    const props = gj.features[0].properties
+    expect('source_url' in props).toBe(false)
+    expect('source_name' in props).toBe(false)
+  })
+
+  test('includes source_url and source_name when set', () => {
+    const gj = buildSpotsGeoJSON(project)
+    const props = gj.features.find((f) => f.properties.id === 'pub')?.properties
+    expect(props && 'source_url' in props).toBe(true)
+    expect(props?.source_url).toBe('https://e.com/')
+    expect(props && 'source_name' in props).toBe(true)
+  })
 })
 
 describe('buildStampAnswers', () => {

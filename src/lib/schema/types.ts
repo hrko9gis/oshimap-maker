@@ -72,8 +72,8 @@ export interface SpotFeatureProperties {
   category: SpotCategory
   work_title?: Bilingual
   summary: Bilingual
-  source_url: string
-  source_name: Bilingual
+  source_url?: string
+  source_name?: Bilingual
   address?: Bilingual
   location_accuracy: LocationAccuracy
   stamp_enabled: boolean

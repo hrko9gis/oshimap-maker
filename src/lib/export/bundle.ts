@@ -28,8 +28,6 @@ function toProperties(spot: SpotDraft): SpotFeatureProperties {
     title: bi(spot.title),
     category: spot.category,
     summary: bi(spot.summary),
-    source_url: spot.source_url,
-    source_name: bi(spot.source_name),
     location_accuracy: spot.location_accuracy,
     stamp_enabled: spot.stamp_enabled,
     sort_order: spot.sort_order,
@@ -37,6 +35,8 @@ function toProperties(spot: SpotDraft): SpotFeatureProperties {
     status: 'published',
   }
   if (spot.work_title) props.work_title = bi(spot.work_title)
+  if (spot.source_url) props.source_url = spot.source_url
+  if (spot.source_name.ja || spot.source_name.en) props.source_name = bi(spot.source_name)
   if (spot.address) props.address = bi(spot.address)
   if (spot.stamp_enabled && spot.stamp_keyword_hint) props.stamp_keyword_hint = bi(spot.stamp_keyword_hint)
   if (spot.estimated_stay_min != null) props.estimated_stay_min = spot.estimated_stay_min
