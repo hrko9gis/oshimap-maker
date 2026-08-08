@@ -3,6 +3,7 @@ import {
   MANUAL_CHECK_ITEMS,
   automatedChecks,
   canPublish,
+  hasModelAssertion,
   needsLocationReminder,
 } from './checklist'
 import type { Project, SpotDraft } from '../schema/types'
@@ -96,5 +97,48 @@ describe('canPublish', () => {
       source_name: { ja: '', en: '' },
     }
     expect(canPublish(spotWithoutSource, project, allManualIds)).toBe(true)
+  })
+
+  test('false when the summary asserts the place is a model location', () => {
+    const asserting = {
+      ...validSpot,
+      summary: { ja: 'お好み焼き屋「ほぼろ」のモデルとなったお店です。', en: 'ok' },
+    }
+    expect(canPublish(asserting, project, allManualIds)).toBe(false)
+  })
+})
+
+describe('hasModelAssertion', () => {
+  test('flags outright model-location claims', () => {
+    expect(
+      hasModelAssertion({
+        ...validSpot,
+        summary: { ja: '「ほぼろ」のモデルとなったお店です。', en: 'ok' },
+      }),
+    ).toBe(true)
+    expect(
+      hasModelAssertion({ ...validSpot, notes: { ja: 'ここがモデル地です。', en: '' } }),
+    ).toBe(true)
+  })
+
+  test('accepts the sanctioned "connected to the series" phrasing', () => {
+    expect(
+      hasModelAssertion({
+        ...validSpot,
+        summary: {
+          ja: '作品ゆかりの場所としてファンに親しまれています。',
+          en: 'Cherished by fans as a place connected to the series.',
+        },
+      }),
+    ).toBe(false)
+  })
+
+  test('accepts hedged phrasing that stops short of asserting', () => {
+    expect(
+      hasModelAssertion({
+        ...validSpot,
+        summary: { ja: '主人公行きつけの写真館を思わせる建物です。', en: 'ok' },
+      }),
+    ).toBe(false)
   })
 })

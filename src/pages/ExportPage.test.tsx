@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { ExportPage } from './ExportPage'
 import { Providers } from '../test/providers'
@@ -62,7 +62,24 @@ function renderExport(id: string) {
 describe('ExportPage', () => {
   test('enables export when published spots are valid', async () => {
     renderExport(seed([spot('a', 1), spot('b', 2)]))
-    expect(await screen.findByRole('button', { name: /ダウンロード/ })).toBeEnabled()
+    // ビューア契約チェックは非同期（合言葉ハッシュ計算を伴う）ため、完了まで無効のまま。
+    const button = await screen.findByRole('button', { name: /ダウンロード/ })
+    await waitFor(() => expect(button).toBeEnabled())
+  })
+
+  test('blocks export when the bundle would fail the viewer validator', async () => {
+    // 免責文に JSON のエスケープが残った状態＝ビューアに配置しても弾かれる。
+    const id = seed([spot('a', 1)])
+    const raw = localStorage.getItem('oshimap-maker:projects')
+    localStorage.setItem(
+      'oshimap-maker:projects',
+      (raw ?? '').replace('"非公式"', '"\\\\\\"本サイトは非公式です。"'),
+    )
+    renderExport(id)
+    expect(
+      await screen.findByText(/ビューアの検証（npm run validate-data）で弾かれる内容があります/),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /ダウンロード/ })).toBeDisabled()
   })
 
   test('blocks export when a published spot has validation errors', async () => {

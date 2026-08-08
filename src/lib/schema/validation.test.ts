@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { validateSpot } from './validation'
+import { looksJsonEscaped, validateProject, validateSpot } from './validation'
 import type { SpotDraft } from './types'
 
 function makeSpot(overrides: Partial<SpotDraft> = {}): SpotDraft {
@@ -79,5 +79,65 @@ describe('validateSpot', () => {
   test('non-finite coordinates are flagged', () => {
     const errs = validateSpot(makeSpot({ lat: Number.NaN }))
     expect(errs.some((e) => e.field === 'lat')).toBe(true)
+  })
+
+  test('summary pasted from raw JSON source is flagged', () => {
+    const errs = validateSpot(
+      makeSpot({ summary: { ja: '概要', en: 'The \\"Tamayura Corner\\" is here.' } }),
+    )
+    expect(errs.some((e) => e.field === 'summary.en')).toBe(true)
+  })
+})
+
+describe('looksJsonEscaped', () => {
+  test('accepts ordinary prose, including Japanese quotation marks', () => {
+    expect(looksJsonEscaped('本サイトは『たまゆら』のファンプロジェクトです。')).toBe(false)
+    expect(looksJsonEscaped('An unofficial fan project.')).toBe(false)
+    expect(looksJsonEscaped('')).toBe(false)
+    expect(looksJsonEscaped(undefined)).toBe(false)
+  })
+
+  test('flags escaped quotes left over from copying raw JSON', () => {
+    expect(looksJsonEscaped('centered on the anime series \\"Tamayura\\" set in Takehara.')).toBe(
+      true,
+    )
+  })
+
+  test('flags a stray leading quote from an off-by-one selection', () => {
+    expect(looksJsonEscaped('"本サイトは、竹原市を舞台としたアニメ作品のファンプロジェクトです。')).toBe(
+      true,
+    )
+  })
+
+  test('flags escape sequences that should have been real characters', () => {
+    expect(looksJsonEscaped('line one\\nline two')).toBe(true)
+  })
+})
+
+describe('validateProject', () => {
+  const base = {
+    title: { ja: 'T', en: 'T' },
+    disclaimer: { ja: '非公式のファンプロジェクトです。', en: 'Unofficial fan project.' },
+    license: 'CC BY 4.0',
+  }
+
+  test('accepts a clean project', () => {
+    expect(validateProject(base)).toEqual([])
+  })
+
+  test('flags a disclaimer pasted from raw JSON source', () => {
+    const errs = validateProject({
+      ...base,
+      disclaimer: { ja: '"本サイトは非公式です。', en: 'Unofficial fan project.' },
+    })
+    expect(errs.some((e) => e.field === 'disclaimer.ja')).toBe(true)
+  })
+
+  test('flags an escaped English disclaimer', () => {
+    const errs = validateProject({
+      ...base,
+      disclaimer: { ja: '非公式です。', en: 'the anime series \\"Tamayura\\" set in Takehara.' },
+    })
+    expect(errs.some((e) => e.field === 'disclaimer.en')).toBe(true)
   })
 })

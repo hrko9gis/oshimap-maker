@@ -1,15 +1,39 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { validateSpot } from '../lib/schema/validation'
 import { courseIssues } from '../lib/schema/course'
 import { useProject } from '../hooks/useProject'
 import { buildBundleZip, triggerDownload } from '../lib/export/download'
+import { buildProjectJson, buildSpotsGeoJSON, buildStampAnswers } from '../lib/export/bundle'
+import { checkBundleAgainstViewer } from '../lib/export/contract'
 import type { SpotDraft } from '../lib/schema/types'
 
 export function ExportPage() {
   const { projectId } = useParams()
   const { project, loading, error } = useProject(projectId)
   const [busy, setBusy] = useState(false)
+  // ビューアの検証規則に対する事前チェック。バンドル生成が非同期（ハッシュ計算）なので
+  // 表示のたびに組み立てて判定する。
+  const [contractErrors, setContractErrors] = useState<string[] | null>(null)
+
+  useEffect(() => {
+    if (!project) {
+      setContractErrors(null)
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      const errors = checkBundleAgainstViewer(
+        buildSpotsGeoJSON(project),
+        await buildStampAnswers(project),
+        buildProjectJson(project),
+      )
+      if (!cancelled) setContractErrors(errors)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [project])
 
   if (loading) return <div className="p-4 text-dusk-700">読み込み中…</div>
   if (error) return <div className="p-4 text-red-700">{error}</div>
@@ -22,7 +46,11 @@ export function ExportPage() {
     validateSpot(s).map((e) => `${s.id || '(ID未設定)'}: ${e.message}`),
   )
   const issues = courseIssues(published)
-  const canExport = published.length > 0 && spotErrors.length === 0
+  const canExport =
+    published.length > 0 &&
+    spotErrors.length === 0 &&
+    contractErrors != null &&
+    contractErrors.length === 0
 
   async function handleExport() {
     if (!canExport || !project) return
@@ -64,6 +92,20 @@ export function ExportPage() {
         </div>
       )}
 
+      {contractErrors != null && contractErrors.length > 0 && (
+        <div className="mt-3 rounded bg-red-50 p-2 text-sm text-red-700">
+          <p className="font-semibold">
+            ビューアの検証（npm run validate-data）で弾かれる内容があります。
+            このままでは配置しても公開できません：
+          </p>
+          <ul className="mt-1 list-disc pl-5">
+            {contractErrors.map((msg, i) => (
+              <li key={i}>{msg}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {(issues.duplicates.length > 0 || issues.gaps.length > 0) && (
         <p className="mt-3 rounded bg-amber-50 p-2 text-sm text-amber-800">
           モデルコース順（sort_order）の警告：
@@ -84,7 +126,7 @@ export function ExportPage() {
       <div className="mt-6 rounded border border-dusk-200 p-3 text-xs text-dusk-700">
         <p className="font-semibold">ビューアへの反映手順（最小構成）</p>
         <ol className="mt-1 list-decimal pl-5">
-          <li>ZIPを展開し、<code>spots.geojson</code> と <code>stamp_answers.json</code> をビューア（oshimap）の <code>data/</code> に上書きする。</li>
+          <li>ZIPを展開し、<code>spots.geojson</code>・<code>stamp_answers.json</code>・<code>project.json</code> の3ファイルをビューア（oshimap）の <code>data/</code> に上書きする。</li>
           <li>ビューアで <code>npm run validate-data</code> を実行して検証する。</li>
           <li>ビューアを <code>git commit</code> & <code>push</code> すると自動デプロイで公開される。</li>
         </ol>

@@ -16,6 +16,19 @@ export const MANUAL_CHECK_ITEMS: { id: string; label: string }[] = [
   { id: 'not_model_assertion', label: '「モデル地」と断定せず「作品ゆかり」等の表現にしている' },
 ]
 
+/**
+ * 「モデル地」と断定する表現。CLAUDE.md #3・DESIGN.md の権利配慮方針で禁止されており、
+ * 目視チェック（not_model_assertion）だけでは実際にすり抜けたため機械判定も行う。
+ * 誤検出を避けるため、言い換えの余地がない断定表現のみを対象にする。
+ */
+const MODEL_ASSERTION_PATTERNS = [/モデル地/, /モデルとなった/, /のモデルである/, /のモデルです/]
+
+/** 紹介文に「モデル地」断定が含まれていないか。 */
+export function hasModelAssertion(spot: SpotDraft): boolean {
+  const texts = [spot.summary?.ja, spot.summary?.en, spot.notes?.ja, spot.notes?.en]
+  return texts.some((t) => t != null && MODEL_ASSERTION_PATTERNS.some((re) => re.test(t)))
+}
+
 /** 機械的に判定できるチェック項目（DESIGN.md §7.8）。 */
 export function automatedChecks(spot: SpotDraft, project: Project): CheckResult[] {
   const summaryOk =
@@ -39,6 +52,11 @@ export function automatedChecks(spot: SpotDraft, project: Project): CheckResult[
       id: 'disclaimer',
       label: 'プロジェクトに非公式の断り書き（disclaimer）がある',
       passed: disclaimerOk,
+    },
+    {
+      id: 'no_model_assertion',
+      label: '紹介文で「モデル地」と断定していない（「作品ゆかり」等の表現にする）',
+      passed: !hasModelAssertion(spot),
     },
   ]
 }

@@ -9,8 +9,32 @@ import {
 
 const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/
 
+const JSON_PASTE_MESSAGE =
+  'JSONファイルの本文をそのまま貼り付けていませんか（\\" や先頭の " が残っています）。表示される文章そのものを入力してください'
+
+/**
+ * 生の JSON ソースからコピー＆ペーストされたテキストを検出する。
+ *
+ * ビューアの `data/project.json` などのファイル本文をそのまま貼ると、値の中に
+ * `\"` やエスケープシーケンス、前後の `"` が残る。Maker は入力を忠実に保存し
+ * エクスポート時に再度 JSON エンコードするため、公開サイトに
+ * `\"たまゆらコーナー\"` のようなバックスラッシュ付きの文言が出てしまう
+ * （実際に免責文で発生した）。紹介文・注意書きは自然文なので、バックスラッシュや
+ * 先頭の引用符が現れること自体が誤入力のサインとして扱える。
+ */
+export function looksJsonEscaped(value: string | undefined): boolean {
+  if (!value) return false
+  const trimmed = value.trim()
+  if (trimmed.length === 0) return false
+  return trimmed.includes('\\') || trimmed.startsWith('"')
+}
+
 function requireText(errors: FieldError[], field: string, value: string | undefined): void {
   if (!value || value.trim().length === 0) errors.push({ field, message: '必須項目です' })
+}
+
+function checkJsonPaste(errors: FieldError[], field: string, value: string | undefined): void {
+  if (looksJsonEscaped(value)) errors.push({ field, message: JSON_PASTE_MESSAGE })
 }
 
 /** 編集中スポットを検証し、フィールド単位のエラー配列を返す（空配列＝妥当）。 */
@@ -24,7 +48,11 @@ export function validateSpot(spot: SpotDraft): FieldError[] {
   if (!CATEGORY_ORDER.includes(spot.category)) {
     errors.push({ field: 'category', message: 'カテゴリが不正です' })
   }
+  checkJsonPaste(errors, 'title.ja', spot.title?.ja)
+  checkJsonPaste(errors, 'title.en', spot.title?.en)
   requireText(errors, 'summary.ja', spot.summary?.ja)
+  checkJsonPaste(errors, 'summary.ja', spot.summary?.ja)
+  checkJsonPaste(errors, 'summary.en', spot.summary?.en)
   if ((spot.summary?.ja ?? '').length > SUMMARY_MAX_LEN) {
     errors.push({ field: 'summary.ja', message: `${SUMMARY_MAX_LEN}字以内にしてください` })
   }
@@ -67,7 +95,11 @@ export function validateProject(
 ): FieldError[] {
   const errors: FieldError[] = []
   requireText(errors, 'title.ja', project.title?.ja)
+  checkJsonPaste(errors, 'title.ja', project.title?.ja)
+  checkJsonPaste(errors, 'title.en', project.title?.en)
   requireText(errors, 'disclaimer.ja', project.disclaimer?.ja)
+  checkJsonPaste(errors, 'disclaimer.ja', project.disclaimer?.ja)
+  checkJsonPaste(errors, 'disclaimer.en', project.disclaimer?.en)
   requireText(errors, 'license', project.license)
   return errors
 }
