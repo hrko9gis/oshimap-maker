@@ -35,7 +35,13 @@ export interface SpotDraft {
   lat: number
   location_accuracy: LocationAccuracy
   stamp_enabled: boolean
+  /** 入力中の合言葉の平文。保存後は保持されない（案A：平文はサーバに置かない）。 */
   stamp_keyword_answer?: string
+  /**
+   * 保存済みの合言葉のSHA-256。平文は復元できないため、「すでに合言葉が設定済みか」は
+   * これで判断する。フォームで平文を入れ直さない限り、この値が引き継がれる。
+   */
+  stamp_keyword_hash?: string
   stamp_keyword_hint?: Bilingual
   sort_order: number
   visit_difficulty: VisitDifficulty

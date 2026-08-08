@@ -71,6 +71,32 @@ describe('validateSpot', () => {
     expect(errs.some((e) => e.field === 'stamp_keyword_hint.ja')).toBe(true)
   })
 
+  test('an already-saved keyword satisfies the requirement without the plaintext', () => {
+    // 保存後に開き直した状態：平文は復元されず、ハッシュだけが残っている。
+    const errs = validateSpot(
+      makeSpot({
+        stamp_enabled: true,
+        stamp_keyword_answer: undefined,
+        stamp_keyword_hash: 'a'.repeat(64),
+        stamp_keyword_hint: { ja: '駅名', en: 'station' },
+      }),
+    )
+    expect(errs.some((e) => e.field === 'stamp_keyword_answer')).toBe(false)
+    expect(errs).toEqual([])
+  })
+
+  test('a hint is still required alongside a saved keyword', () => {
+    const errs = validateSpot(
+      makeSpot({
+        stamp_enabled: true,
+        stamp_keyword_answer: undefined,
+        stamp_keyword_hash: 'a'.repeat(64),
+        stamp_keyword_hint: { ja: '', en: '' },
+      }),
+    )
+    expect(errs.some((e) => e.field === 'stamp_keyword_hint.ja')).toBe(true)
+  })
+
   test('invalid category enum is flagged', () => {
     const errs = validateSpot(makeSpot({ category: 'x' as SpotDraft['category'] }))
     expect(errs.some((e) => e.field === 'category')).toBe(true)

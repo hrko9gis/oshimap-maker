@@ -77,3 +77,42 @@ describe('project mapping', () => {
     expect(back.spots.length).toBe(1)
   })
 })
+
+describe('合言葉の再編集（平文は保存されない前提）', () => {
+  test('rowToSpot carries the stored hash so the app knows a keyword exists', async () => {
+    const row = await spotToRow(spot, 'p1')
+    const restored = rowToSpot(row)
+    expect(restored.stamp_keyword_answer).toBeUndefined()
+    expect(restored.stamp_keyword_hash).toBe(row.stamp_keyword_hash)
+    expect(restored.stamp_keyword_hash).toMatch(/^[0-9a-f]{64}$/)
+  })
+
+  test('re-saving without retyping the keyword keeps the existing hash', async () => {
+    const first = await spotToRow(spot, 'p1')
+    const reopened = rowToSpot(first)
+    // タイトルだけ直して保存し直す（合言葉欄は空のまま）
+    const edited = { ...reopened, title: { ja: '竹原駅（改）', en: 'Takehara Sta.' } }
+    const second = await spotToRow(edited, 'p1')
+    expect(second.stamp_keyword_hash).toBe(first.stamp_keyword_hash)
+  })
+
+  test('typing a new keyword replaces the stored hash', async () => {
+    const first = await spotToRow(spot, 'p1')
+    const reopened = rowToSpot(first)
+    const second = await spotToRow(
+      { ...reopened, stamp_keyword_answer: 'ちがう合言葉' },
+      'p1',
+    )
+    expect(second.stamp_keyword_hash).toBe(
+      await sha256Hex(normalizeKeyword('ちがう合言葉')),
+    )
+    expect(second.stamp_keyword_hash).not.toBe(first.stamp_keyword_hash)
+  })
+
+  test('turning the stamp off clears the stored hash', async () => {
+    const first = await spotToRow(spot, 'p1')
+    const reopened = rowToSpot(first)
+    const second = await spotToRow({ ...reopened, stamp_enabled: false }, 'p1')
+    expect(second.stamp_keyword_hash).toBeNull()
+  })
+})

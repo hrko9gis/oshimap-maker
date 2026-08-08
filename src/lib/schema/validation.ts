@@ -82,7 +82,10 @@ export function validateSpot(spot: SpotDraft): FieldError[] {
     errors.push({ field: 'sort_order', message: '1以上の整数が必要です' })
   }
   if (spot.stamp_enabled) {
-    requireText(errors, 'stamp_keyword_answer', spot.stamp_keyword_answer)
+    // 保存済みスポットは平文を復元できない（案A）。ハッシュが既にあれば入力済みとみなす。
+    if (!spot.stamp_keyword_hash) {
+      requireText(errors, 'stamp_keyword_answer', spot.stamp_keyword_answer)
+    }
     requireText(errors, 'stamp_keyword_hint.ja', spot.stamp_keyword_hint?.ja)
   }
 

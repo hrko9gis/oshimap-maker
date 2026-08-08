@@ -76,12 +76,19 @@ export function rowToProject(row: ProjectRow, spots: SpotDraft[]): Project {
   }
 }
 
-/** 案A：合言葉があればハッシュ化して stamp_keyword_hash に入れ、平文は行に含めない。 */
+/**
+ * 案A：合言葉があればハッシュ化して stamp_keyword_hash に入れ、平文は行に含めない。
+ *
+ * 平文は保存されないので、保存済みスポットを開き直すと入力欄は空になる。その状態で
+ * 別の項目だけ直して保存しても合言葉が消えないよう、**平文が入力されていなければ
+ * 既存のハッシュを引き継ぐ**。合言葉を消したいときはスタンプ対象のチェックを外す。
+ */
 export async function spotToRow(spot: SpotDraft, projectId: string): Promise<SpotRow> {
-  const hash =
-    spot.stamp_enabled && spot.stamp_keyword_answer
+  const hash = !spot.stamp_enabled
+    ? null
+    : spot.stamp_keyword_answer
       ? await sha256Hex(normalizeKeyword(spot.stamp_keyword_answer))
-      : null
+      : (spot.stamp_keyword_hash ?? null)
   return {
     id: spot.id,
     project_id: projectId,
@@ -106,7 +113,10 @@ export async function spotToRow(spot: SpotDraft, projectId: string): Promise<Spo
   }
 }
 
-/** 行→SpotDraft。平文は復元できないため stamp_keyword_answer は付けない。 */
+/**
+ * 行→SpotDraft。平文は復元できないため stamp_keyword_answer は付けない。
+ * 代わりに stamp_keyword_hash を渡し、「合言葉が設定済みである」ことを表す。
+ */
 export function rowToSpot(row: SpotRow): SpotDraft {
   const spot: SpotDraft = {
     id: row.id,
@@ -125,6 +135,7 @@ export function rowToSpot(row: SpotRow): SpotDraft {
   }
   if (row.work_title) spot.work_title = row.work_title
   if (row.address) spot.address = row.address
+  if (row.stamp_keyword_hash) spot.stamp_keyword_hash = row.stamp_keyword_hash
   if (row.stamp_keyword_hint) spot.stamp_keyword_hint = row.stamp_keyword_hint
   if (row.estimated_stay_min != null) spot.estimated_stay_min = row.estimated_stay_min
   if (row.notes) spot.notes = row.notes

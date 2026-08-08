@@ -56,12 +56,21 @@ export function buildSpotsGeoJSON(project: Project): SpotsGeoJSON {
   }
 }
 
-/** published かつ stamp_enabled のスポットの合言葉ハッシュのみを生成する（平文は含まない）。 */
+/**
+ * published かつ stamp_enabled のスポットの合言葉ハッシュのみを生成する（平文は含まない）。
+ *
+ * 平文が手元にあればそこから計算し、無ければ保存済みのハッシュを使う。後者は
+ * Supabase 保存（案A：平文を持たない）で開き直した場合の通常経路であり、これが無いと
+ * 合言葉つきスタンプをバンドルに載せられない。どちらも無ければ手動チェックイン専用。
+ */
 export async function buildStampAnswers(project: Project): Promise<StampAnswers> {
   const answers: Record<string, { hash: string }> = {}
   for (const spot of publishedSpots(project)) {
-    if (!spot.stamp_enabled || !spot.stamp_keyword_answer) continue
-    const hash = await sha256Hex(normalizeKeyword(spot.stamp_keyword_answer))
+    if (!spot.stamp_enabled) continue
+    const hash = spot.stamp_keyword_answer
+      ? await sha256Hex(normalizeKeyword(spot.stamp_keyword_answer))
+      : spot.stamp_keyword_hash
+    if (!hash) continue
     answers[spot.id] = { hash }
   }
   return { answers }

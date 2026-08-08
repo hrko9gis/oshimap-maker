@@ -42,8 +42,9 @@ export function ExportPage() {
   }
 
   const published: SpotDraft[] = project.spots.filter((s) => s.status === 'published')
+  // どの項目が問題なのか分からないと直しようがないので、フィールド名まで出す。
   const spotErrors = published.flatMap((s) =>
-    validateSpot(s).map((e) => `${s.id || '(ID未設定)'}: ${e.message}`),
+    validateSpot(s).map((e) => `${s.id || '(ID未設定)'} の ${e.field}: ${e.message}`),
   )
   const issues = courseIssues(published)
   const canExport =

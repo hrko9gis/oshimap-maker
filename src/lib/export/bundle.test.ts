@@ -116,3 +116,43 @@ describe('buildProjectJson', () => {
     expect(pj.description).toEqual({ ja: '説明', en: '説明' })
   })
 })
+
+describe('buildStampAnswers with an already-saved keyword', () => {
+  test('uses the stored hash when the plaintext is no longer in memory', async () => {
+    // Supabase 保存では開き直すと平文は無い。ハッシュだけでバンドルに載る必要がある。
+    const stored = 'b'.repeat(64)
+    const p: Project = {
+      ...project,
+      spots: [
+        spot('saved', {
+          status: 'published',
+          stamp_enabled: true,
+          stamp_keyword_answer: undefined,
+          stamp_keyword_hash: stored,
+          stamp_keyword_hint: { ja: 'h', en: 'h' },
+        }),
+      ],
+    }
+    const ans = await buildStampAnswers(p)
+    expect(ans.answers.saved.hash).toBe(stored)
+  })
+
+  test('a freshly typed keyword wins over the stored hash', async () => {
+    const p: Project = {
+      ...project,
+      spots: [
+        spot('retyped', {
+          status: 'published',
+          stamp_enabled: true,
+          stamp_keyword_answer: 'あたらしい',
+          stamp_keyword_hash: 'c'.repeat(64),
+          stamp_keyword_hint: { ja: 'h', en: 'h' },
+        }),
+      ],
+    }
+    const ans = await buildStampAnswers(p)
+    expect(ans.answers.retyped.hash).not.toBe('c'.repeat(64))
+    expect(ans.answers.retyped.hash).toMatch(/^[0-9a-f]{64}$/)
+    expect(JSON.stringify(ans)).not.toContain('あたらしい')
+  })
+})

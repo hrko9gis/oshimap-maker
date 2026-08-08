@@ -197,9 +197,20 @@ export function SpotForm({ value, onChange, onSubmit, errors }: SpotFormProps) {
               className="rounded border border-dusk-300 px-2 py-1 text-sm"
               value={value.stamp_keyword_answer ?? ''}
               onChange={(e) => set('stamp_keyword_answer', e.target.value)}
+              placeholder={
+                value.stamp_keyword_hash ? '設定済み（変更するときだけ入力）' : ''
+              }
             />
             <ErrorText errors={errors} field="stamp_keyword_answer" />
           </label>
+          {/* 平文は保存されないため、開き直すと入力欄は空になる。設定済みかどうかを明示して
+              「消えた」と誤解されないようにする（実際に誤解が起きた）。 */}
+          {value.stamp_keyword_hash && !value.stamp_keyword_answer && (
+            <p className="text-xs text-dusk-600">
+              合言葉は設定済みです。平文は保存しない方式のため入力欄は空で表示されます。
+              空のまま保存すれば現在の合言葉が維持されます。変更したいときだけ入力してください。
+            </p>
+          )}
           <KeywordHashPreview keyword={value.stamp_keyword_answer ?? ''} />
           <BilingualInput
             label="合言葉のヒント"
